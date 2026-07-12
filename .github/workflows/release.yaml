@@ -3,11 +3,6 @@ name: release
 on:
   push:
     branches: [main]
-  workflow_dispatch:
-    inputs:
-      tag:
-        description: Build will be uploaded to EXISTING release with this tag!
-        required: true
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -33,7 +28,7 @@ jobs:
 
   build:
     needs: [metadata]
-    if: ${{ needs.metadata.outputs.release-created || github.event_name == 'workflow_dispatch' }}
+    if: ${{ needs.metadata.outputs.release-created }}
     uses: ./.github/workflows/build.yaml
   upload:
     needs: [metadata, build]
@@ -49,6 +44,6 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
         run: >
-          gh release upload --clobber
-          ${{ needs.metadata.outputs.tag-name || github.event_name == 'workflow_dispatch' && inputs.tag }}
+          gh release upload
+          ${{ needs.metadata.outputs.tag-name }}
           build/microblip.zip
